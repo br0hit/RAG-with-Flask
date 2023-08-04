@@ -1,0 +1,13 @@
+conda create -n haystack python=3.10
+conda activate haystack
+pip install Flask
+pip install requests
+pip install PyPDF2
+pip install python-docx
+pip install pdfreader
+conda install -c conda-forge pdftotext 
+pip install farm-haystack
+pip install farm-haystack[faiss]
+pip install farm-haystack[preprocessing]
+pip install farm-haystack[inference]
+

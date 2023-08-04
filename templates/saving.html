@@ -1,0 +1,524 @@
+    <!DOCTYPE html>
+    <html>
+
+    <head>
+        <title>PRIVATE GPT</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <style>
+            body {
+                position: relative;
+                max-height: 100%;
+                //min-height: 100vh;
+                //background-color: #f9f9f9;
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-position: center;
+                //background-image: url({{ url_for('static', filename='ChatUI-BG.png') }});     }
+
+            #header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                padding: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background-color: #6f94dc;
+            }
+
+            #header-logo {
+                display: flex;
+                align-items: center;
+            }
+
+            #header-logo img {
+                max-height: 50px;
+                margin-right: 10px;
+            }
+
+            #header-title {
+                flex-grow: 1;
+                text-align: right;
+            }
+
+            #content {
+                padding-top: 100px;
+                overflow-y: auto;
+                /* Add scroll bar to the content */
+            }
+
+            .ChatArea {
+                display: flex;
+                flex-direction: column;
+                //margin: 10px;
+            }
+
+            .question-box {
+                max-width: 70%;
+                background-color: #0C7B93;
+                position: relative;
+                padding: 10px;
+                margin: 10px;
+                color: white;
+                border-radius: 5px;
+            justify-content: justified;
+            }
+
+            .question-box::after {
+                content: "";
+                position: absolute;
+                height: 1.2rem;
+                width: 1.2rem;
+                bottom: -1.2rem;
+                right: 90%;
+                background-color: #0C7B93;
+                clip-path: polygon(100% 0, 0 0, 0% 100%);
+            }
+            
+            .answer-box {
+                max-width: 70%;
+            left: 28%;
+                background-color: #ffd9b3;
+                position: relative;
+                padding: 10px;
+                margin: 10px;
+                color: #000000;
+                border-radius: 5px;
+            justify-content: right;
+            align-content: right;
+            }
+
+            .answer-box::after {
+                content: "";
+                position: absolute;
+                height: 1.2rem;
+                width: 1.2rem;
+                bottom: -1.2rem;
+                left: 90%;
+                background-color: #ffd9b3;
+                clip-path: polygon(0 0, 100% 0, 100% 100%);
+            }
+
+            .question-box img,
+            .answer-box img {
+                margin-right: 10px;
+            }
+
+
+
+            #submit-button {
+                margin: 5px;
+            }
+
+            /*#upload-docs-button {
+                margin-left: 10px;
+            }*/
+
+            #upload-container {}
+
+            .input-container {
+                width: 100%;
+            }
+
+            .button-container {
+                display: flex;
+                align-items: center;
+            }
+
+            /*#user-input {
+                flex-grow: 1;
+                width: 100%;
+                margin-right: 10px;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+            }*/
+
+            .UserQueInp {
+                flex-grow: 1;
+                width: 75%;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px 10px;
+                transition: border 0.4s ease-in-out;
+            }
+
+            .UserQueInp:focus {
+                width: 75%;
+            }
+
+            #submit-button {
+                /*background-color: #dc3545;*/
+                color: #000000;
+                border: none;
+                padding: 5px 16px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 18px;
+            }
+
+            /*#upload-docs-button {
+                background-color: #007bff;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 16px;
+            }*/
+
+            #submit-button:hover {
+                background-color: #3366cc;
+                color: #FFFFFF;
+            }
+
+            /*#upload-docs-button:hover {
+                background-color: #7cb8e0;
+            }*/
+
+            #record-button,
+            #stop-button {
+                margin: 0 10px;
+                display: none;
+            }
+
+            /*.logo-container {
+                height: 3.5rem;
+                width: 15rem;
+                background-color: #fff;
+                border-radius: 0px;
+                box-shadow: 0px 0px 2px #142952;
+                padding: 10px 0px;
+                text-align: center;
+            } */
+
+            .PageContent {
+                background-color: #222A55;
+                //padding: 10px;
+                width: 100%;
+                font-family: Arial, sans-serif !important;
+            max-height: 90%;
+            }
+
+            .HeaderContent {
+                display: flex;
+                align-items: center;
+            }
+
+            .float-parts {
+                width: 90%;
+            //padding: 10px 0px;
+                text-align: right;
+            color: #FFFFFF;
+            text-shadow: 0px 0px 2px #000000;
+            font-family: Arial Black, sans-serif; 
+            }
+
+            .QnAContent {
+                //width: 75%;		 
+                min-height: 37.2rem;
+                //align-items: right;
+                //margin: 20px 30px 10px 18rem;
+                background-color: #ffffff;
+                box-shadow: 10px 10px 5px #142952;
+                border-radius: 15px;
+                padding: 10px 20px;
+                overflow: scroll;
+            }
+
+            .desc-area {
+                padding: 20px;
+                align-content: middle;
+                color: #FFFFFF;
+                font-family: Gill Sans, sans-serif;
+            }
+
+            .contentArea {
+                align-items: center;
+            }
+
+        .ChatContainer {
+            min-height: 35rem;
+        }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="PageContent">
+            <div class="HeaderContent">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='logo_new.png') }}" width="170rem" height="auto" alt="Logo">
+                </div>
+
+                <div class="float-parts">
+                    <h3>Chitti.AI</h3>
+                </div>
+            </div>
+
+            <table>
+                <tr>
+                    <td style="max-width: 25%">
+                        <div class="desc-area">
+                            <h4>The Rajnikanth of AI - No Stunts, Just Stunning Solutions!</h4>
+                        </div>
+                    </td>
+                    <td> </td>
+                    <td style="min-width: 75%">
+                        <div class="QnAContent">            
+                            <div class="ChatContainer">
+                                {% for pair in conversation[::-1] %}
+                                <div class="ChatArea">
+                                    
+                                    <div class="question-box">
+                                        <img src="{{ url_for('static', filename='user_icon.png') }}" alt="User Logo" style="width: 20px; height: 20px;">
+                                        <p>{{ pair.question }}</p>
+                                    </div>
+                                    <div class="answer-box">				
+                                        <img src="{{ url_for('static', filename='bot.png') }}" alt="Bot Logo" style="width: 20px; height: 20px;">
+                                        <p>{{ pair.reply }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                <div id="uploading-docs-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);">
+                                    <h3>Uploading Documents...</h3>
+                                </div>
+                            
+                            </div>
+                                <div id="button-container">
+                                    <div id="input-container">
+                                        <input type="text" id="user-input" class="UserQueInp" name="user_input" placeholder="Enter your input ">
+                                        <!--<select style="padding: 5px; border-radius: 5px">
+                                            <option>
+                                        <Button id="upload-docs-button" class="btn btn-secondary">Upload Docs</Button>
+                                                
+                                            </option>
+                                        </select>-->
+                                    <Button id="upload-docs-button" class="btn btn-secondary">Upload Docs</Button>
+                                        <input type="file" id="file-input" name="documents" multiple style="display: none;">
+                                        <span>
+                                        <button id="submit-button" onclick="submitInput()"><i class='fas fa-location-arrow'></i></button></span>
+                                    </div>
+                
+                                    <button id="record-button" class="btn btn-primary" onclick="toggleRecording()">Speak</button>
+                                    <button id="stop-button" class="btn btn-danger" onclick="stopRecording()">Stop</button>
+                                </div>
+                            </div>
+                    </td>
+                </tr>
+            </table>
+
+            
+            
+        
+        </div>
+
+    </body>
+
+    </html>
+
+
+
+
+
+    <script>
+        function submitInput() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() !== '') {
+                const formData = new FormData();
+                formData.append('user_input', userInput);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/submit-input',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        if (response.data === 'response1') {
+                            // Redirect to the first app
+                            window.location.href = response.redirect;
+                        } else if (response.data === 'response2') {
+                            // Redirect to the second app
+                            window.location.href = response.redirect;
+                        }
+                    },
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
+            }
+        }
+
+
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        async function toggleRecording() {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                startRecording();
+                document.getElementById('record-button').innerText = 'Recording...';
+                document.getElementById('stop-button').disabled = false;
+            } else {
+                stopRecording();
+                document.getElementById('record-button').innerText = 'Speak';
+                document.getElementById('stop-button').disabled = true;
+            }
+        }
+
+        function handleDataAvailable(e) {
+            recordedChunks = []
+            recordedChunks.push(e.data);
+            uploadAudio();
+
+        }
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: false
+                })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.addEventListener('dataavailable', handleDataAvailable);
+
+                    mediaRecorder.start();
+
+                })
+                .catch(console.error);
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            document.getElementById('record-button').innerText = 'Speak';
+            document.getElementById('stop-button').disabled = true;
+        }
+
+
+
+        function uploadAudio() {
+            const blob = new Blob(recordedChunks, {
+                type: 'audio/wav'
+            });
+            const formData = new FormData();
+            formData.append('audio', blob, 'recording.wav');
+
+
+            $.ajax({
+                type: 'POST',
+                url: '/upload-audio',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.data === 'response1') {
+                        // Redirect to the first app
+                        window.location.href = response.redirect;
+                    } else if (response.data === 'response2') {
+                        // Redirect to the second app
+                        window.location.href = response.redirect;
+                    }
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+
+            });
+
+        }
+
+        function handleKeyPress(event) {
+            if (event.keyCode === 13 && !event.shiftKey) {
+                event.preventDefault();
+                document.getElementById('submit-button').click();
+            }
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', handleKeyPress);
+
+        // Function to trigger the file input element
+        function openFileInput() {
+            document.getElementById('file-input').click();
+        }
+        document.getElementById('upload-docs-button').addEventListener('click', openFileInput);
+        
+
+        // Event listener to handle file selection
+        document.getElementById('file-input').addEventListener('change', handleFileSelect);
+
+        // Function to handle selected files
+        function handleFileSelect(event) {
+            const files = event.target.files;
+
+            // Display the selected file names as a comma-separated list
+            const fileNames = Array.from(files).map(file => file.name).join(', ');
+            console.log('Selected files:', fileNames);
+
+            // Optional: Display a confirmation message or update UI
+            // ...
+
+            // Upload the selected files
+            uploadDocuments(files);
+        }
+
+        function disableButtons() {
+            // Disable the submit and upload documents buttons
+            document.getElementById('submit-button').disabled = true;
+            document.getElementById('upload-docs-button').disabled = true;
+        }
+
+        function enableButtons() {
+            // Enable the submit and upload documents buttons
+            document.getElementById('submit-button').disabled = false;
+            document.getElementById('upload-docs-button').disabled = false;
+        }
+
+        function uploadDocuments() {
+            const files = document.getElementById('file-input').files;
+
+            // Show the uploading documents popup
+            document.getElementById('uploading-docs-popup').style.display = 'block';
+
+            // Disable buttons while uploading documents
+            disableButtons();
+
+            const formData = new FormData();
+            for (const file of files) {
+                formData.append('documents', file);
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '/upload-documents',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    // Hide the uploading documents popup
+                    document.getElementById('uploading-docs-popup').style.display = 'none';
+
+                    if (response.data === 'success') {
+                        // Redirect to the Question_Answering route
+                        window.location.href = response.redirect;
+                    } else {
+                        console.error(response.message);
+                    }
+                },
+                error: function(error) {
+                    console.error(error);
+                },
+                complete: function() {
+                    // Enable buttons after uploading documents
+                    enableButtons();
+                }
+            });
+        }
+        
+    </script>
+    </body>
+
+    </html>
