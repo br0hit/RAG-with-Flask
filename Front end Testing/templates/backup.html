@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PRIVATE GPT</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            position: relative;
+            min-height: 100vh;
+            background-color: #f9f9f9;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #9ec8e6;
+        }
+
+        #header-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        #header-logo img {
+            max-height: 50px;
+            margin-right: 10px;
+        }
+
+        #header-title {
+            flex-grow: 1;
+            text-align: right;
+        }
+
+        #content {
+            padding-top: 100px;
+            overflow-y: auto; /* Add scroll bar to the content */
+        }
+
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+
+        .question-container,
+        .reply-container {
+            display: flex;
+            align-items: center;
+            padding: 3px;
+            text-align: left;
+            color: #333;
+        }
+
+        .question-container {
+            background-color: #e6e6fa;
+        }
+
+        .reply-container {
+            background-color: #eaffea;
+        }
+
+        .question-container img,
+        .reply-container img {
+            margin-right: 10px;
+        }
+
+        #button-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #c0c0c0;
+            padding: 10px;
+        }
+
+        #input-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            margin-right: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        #buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        #submit-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+        }
+
+        #submit-button:hover {
+            background-color: #45a049;
+        }
+
+        #record-button,
+        #stop-button {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div id="header-logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+        </div>
+        <div id="header-title">
+            <h1>PRIVATE GPT</h1>
+        </div>
+    </div>
+
+    <div id="content">
+        {% for pair in conversation[::-1] %}
+        <div class="message-container">
+            <div class="question-container">
+                <img src="{{ url_for('static', filename='user_icon.png') }}" alt="User Logo" style="width: 20px; height: 20px;">
+                <p>{{ pair.question }}</p>
+            </div>
+            <div class="reply-container">
+                <img src="{{ url_for('static', filename='bot.png') }}" alt="Bot Logo" style="width: 20px; height: 20px;">
+                <p>{{ pair.reply }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="button-container">
+        <div id="input-container">
+            <input type="text" id="user-input" name="user_input" placeholder="Enter your input: ">
+            <button id="submit-button" class="btn btn-primary" onclick="submitInput()">Submit</button>
+        </div>
+        <button id="record-button" class="btn btn-primary" onclick="toggleRecording()">Speak</button>
+        <button id="stop-button" class="btn btn-danger" onclick="stopRecording()">Stop</button>
+    </div>
+</body>
+</html>
+
+
+
+
+
+<script>
+
+
+    
+    function submitInput() {
+        const userInput = document.getElementById('user-input').value;
+        if (userInput.trim() !== '') {
+            const formData = new FormData();
+            formData.append('user_input', userInput);
+
+            $.ajax({
+                type: 'POST',
+                url: '/submit-input',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.data === 'response1') {
+                        // Redirect to the first app
+                        window.location.href = response.redirect;
+                    } else if (response.data === 'response2') {
+                        // Redirect to the second app
+                        window.location.href = response.redirect;
+                    }
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+            });
+        }
+    }
+
+
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    async function toggleRecording() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+            startRecording();
+            document.getElementById('record-button').innerText = 'Recording...';
+            document.getElementById('stop-button').disabled = false;
+        }
+        else {
+            stopRecording();
+            document.getElementById('record-button').innerText = 'Speak';
+            document.getElementById('stop-button').disabled = true;
+        }
+    }
+
+    function handleDataAvailable(e) {
+        recordedChunks=[]
+        recordedChunks.push(e.data);
+        uploadAudio();
+
+    }
+
+        function startRecording() {
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.addEventListener('dataavailable', handleDataAvailable);
+
+                mediaRecorder.start();
+
+            })
+            .catch(console.error);
+    }
+
+        function stopRecording() {
+        mediaRecorder.stop();
+        document.getElementById('record-button').innerText = 'Speak';
+        document.getElementById('stop-button').disabled = true;
+    }
+
+
+
+    function uploadAudio() {
+    const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+    const formData = new FormData();
+    formData.append('audio', blob, 'recording.wav');
+
+
+    $.ajax({
+        type: 'POST',
+        url: '/upload-audio',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            if (response.data === 'response1') {
+                // Redirect to the first app
+                window.location.href = response.redirect;
+            } else if (response.data === 'response2') {
+                // Redirect to the second app
+                window.location.href = response.redirect;
+            }
+        },
+        error: function(error) {
+            console.error(error);
+        }
+        
+    });
+
+    }
+
+    function handleKeyPress(event) {
+        if (event.keyCode === 13 && !event.shiftKey) {
+            event.preventDefault();
+            document.getElementById('submit-button').click();
+        }
+    }
+    
+    document.getElementById('user-input').addEventListener('keypress', handleKeyPress);
+    
+
+</script>
+</body>
+</html>
