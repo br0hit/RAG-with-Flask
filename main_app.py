@@ -151,4 +151,4 @@ if __name__ == '__main__':
     transcription_data = None
     
     # app.run()
-    app.run(host="172.31.27.34")   
+    app.run()   
